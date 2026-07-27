@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>出退勤打刻 | 顔認証 出退勤システム</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>出退勤打刻</h1>
+    <p>カメラに顔を映すと自動で出勤・退勤を判定します</p>
+  </header>
+
+  <div class="card">
+    <div class="video-wrap">
+      <video id="video" muted playsinline></video>
+      <canvas id="overlay"></canvas>
+    </div>
+    <button id="scanBtn" class="btn-primary" disabled>顔をスキャンして打刻する</button>
+    <div id="status" class="status">モデルを読み込み中です...</div>
+    <div id="logList" class="log-list"></div>
+  </div>
+
+  <div class="nav-links">
+    <a href="index.html">← トップに戻る</a>
+    <a href="register.html">顔を登録する →</a>
+  </div>
+
+  <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/faceEngine.js"></script>
+  <script src="js/attendance.js"></script>
+</body>
+</html>
