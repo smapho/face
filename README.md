@@ -10,49 +10,47 @@
 - `js/faceEngine.js` — face-api.js のラッパー（モデル読込・カメラ・顔検出・特徴量比較）
 - `models/` — face-api.js の学習済みモデル（tiny_face_detector, face_landmark_68, face_recognition）
 - `sql/schema.sql` — Supabaseのテーブル定義・RLSポリシー
+- `api/config.js` — Vercel Function。Vercelの環境変数(`SUPABASE_URL` / `SUPABASE_ANON_KEY`)を読み、`window.APP_CONFIG`をブラウザに返す
 
 ## セットアップ
 
 ### 1. Supabaseプロジェクトを作成
 
-1. https://supabase.com でプロジェクトを作成
+1. https://supabase.com でプロジェクトを作成（またはVercel Marketplace経由: `vercel integration add supabase`）
 2. SQL Editorで `sql/schema.sql` の内容を実行
-3. Project Settings > API から `Project URL` と `anon public key` を取得
+3. Project Settings > API から `Project URL` と `anon / publishable key` を取得
 
-### 2. 設定ファイルを作成
+### 2. Vercelに環境変数を設定
 
-`js/config.example.js` を `js/config.js` としてコピーし、Supabaseの値を書き込む:
-
-```js
-window.APP_CONFIG = {
-  SUPABASE_URL: "https://xxxxxxxxxxxx.supabase.co",
-  SUPABASE_ANON_KEY: "your-anon-key-here",
-  MATCH_THRESHOLD: 0.55,
-};
+```bash
+vercel env add SUPABASE_URL production
+vercel env add SUPABASE_URL preview
+vercel env add SUPABASE_URL development
+vercel env add SUPABASE_ANON_KEY production
+vercel env add SUPABASE_ANON_KEY preview
+vercel env add SUPABASE_ANON_KEY development
 ```
 
-`js/config.js` は `.gitignore` 済みです（誤ってコミットしないよう注意）。
+設定は `api/config.js`（Vercel Function）がリクエスト時に読み込み、`/api/config.js` として `window.APP_CONFIG` をブラウザに返します。`js/config.example.js` はローカルで素の静的サーバーを使う場合の参考用テンプレートです。
 
 ### 3. ローカルで動作確認
 
-ブラウザの `getUserMedia`(カメラ) はHTTPS or localhost でのみ動作します。簡易サーバーで確認してください:
+`api/config.js` はVercel Functionのため、`vercel dev` を使ってください（環境変数は `vercel env pull` で同期されます）:
 
 ```bash
-npx serve .
-# または
-python3 -m http.server 8080
+npm i -g vercel@latest
+vercel env pull .env.local
+vercel dev
 ```
 
-`http://localhost:8080` を開いて動作を確認します。
+ブラウザの `getUserMedia`(カメラ) はHTTPS or localhost でのみ動作するため、`vercel dev` が出すlocalhost URLで確認します。
 
 ### 4. Vercelにデプロイ
 
 ```bash
-npm i -g vercel@latest
-vercel
+vercel        # プレビュー
+vercel --prod # 本番
 ```
-
-ビルド不要の静的サイトなのでFrameworkは "Other" のままでOKです。デプロイ後、Vercelのダッシュボードで `js/config.js` の内容相当を環境変数として管理したい場合は、ビルドステップを追加するか、`config.js` を直接デプロイ対象に含めてください（anon keyはSupabaseのRLSで保護されている前提で公開して問題ありません）。
 
 ## 使い方
 
