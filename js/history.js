@@ -3,6 +3,12 @@ const logTableBody = document.getElementById("logTableBody");
 const dateFilter = document.getElementById("dateFilter");
 const todayBtn = document.getElementById("todayBtn");
 const allBtn = document.getElementById("allBtn");
+const prevDayBtn = document.getElementById("prevDayBtn");
+const nextDayBtn = document.getElementById("nextDayBtn");
+const bigDateEl = document.getElementById("bigDate");
+const bigWeekdayEl = document.getElementById("bigWeekday");
+
+const WEEKDAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
 
 const TYPE_LABELS = {
   clock_in: "出社",
@@ -22,6 +28,24 @@ function todayDateString() {
   const now = new Date();
   const offset = now.getTimezoneOffset();
   return new Date(now.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
+function shiftDateString(dateStr, days) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  const offset = d.getTimezoneOffset();
+  return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
+function updateBigDateDisplay() {
+  if (!dateFilter.value) {
+    bigDateEl.textContent = "全期間";
+    bigWeekdayEl.textContent = "";
+    return;
+  }
+  const d = new Date(dateFilter.value + "T00:00:00");
+  bigDateEl.textContent = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  bigWeekdayEl.textContent = `${WEEKDAYS_JP[d.getDay()]}曜日`;
 }
 
 async function loadCurrentStatus() {
@@ -160,17 +184,35 @@ dateFilter.value = todayDateString();
 
 todayBtn.addEventListener("click", () => {
   dateFilter.value = todayDateString();
+  updateBigDateDisplay();
   loadLogTable(dateFilter.value);
 });
 
 allBtn.addEventListener("click", () => {
   dateFilter.value = "";
+  updateBigDateDisplay();
   loadLogTable(null);
 });
 
 dateFilter.addEventListener("change", () => {
+  updateBigDateDisplay();
   loadLogTable(dateFilter.value || null);
 });
 
+prevDayBtn.addEventListener("click", () => {
+  const base = dateFilter.value || todayDateString();
+  dateFilter.value = shiftDateString(base, -1);
+  updateBigDateDisplay();
+  loadLogTable(dateFilter.value);
+});
+
+nextDayBtn.addEventListener("click", () => {
+  const base = dateFilter.value || todayDateString();
+  dateFilter.value = shiftDateString(base, 1);
+  updateBigDateDisplay();
+  loadLogTable(dateFilter.value);
+});
+
+updateBigDateDisplay();
 loadCurrentStatus();
 loadLogTable(dateFilter.value);
