@@ -222,7 +222,7 @@ async function loadLogTable(dateStr) {
     .join("");
 }
 
-logTableBody.addEventListener("dblclick", (e) => {
+logTableBody.addEventListener("click", (e) => {
   const cell = e.target.closest(".name-cell");
   if (!cell) return;
   const name = cell.textContent.trim();
