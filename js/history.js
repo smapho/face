@@ -74,14 +74,22 @@ async function loadCurrentStatus() {
     .join("");
 }
 
+function formatDateJP(d) {
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function formatTimeJP(d) {
+  return d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+}
+
 async function loadLogTable(dateStr) {
-  logTableBody.innerHTML = `<tr><td colspan="3">読み込み中...</td></tr>`;
+  logTableBody.innerHTML = `<tr><td colspan="6">読み込み中...</td></tr>`;
 
   let query = supabaseClient
     .from("attendance_logs")
     .select("type, created_at, employees(name)")
-    .order("created_at", { ascending: false })
-    .limit(300);
+    .order("created_at", { ascending: true })
+    .limit(1000);
 
   if (dateStr) {
     const start = new Date(dateStr + "T00:00:00");
@@ -92,28 +100,59 @@ async function loadLogTable(dateStr) {
   const { data, error } = await query;
 
   if (error) {
-    logTableBody.innerHTML = `<tr><td colspan="3">読み込みに失敗しました: ${error.message}</td></tr>`;
+    logTableBody.innerHTML = `<tr><td colspan="6">読み込みに失敗しました: ${error.message}</td></tr>`;
     return;
   }
 
   if (data.length === 0) {
-    logTableBody.innerHTML = `<tr><td colspan="3">記録がありません</td></tr>`;
+    logTableBody.innerHTML = `<tr><td colspan="6">記録がありません</td></tr>`;
     return;
   }
 
-  logTableBody.innerHTML = data
-    .map((log) => {
-      const label = TYPE_LABELS[log.type] ?? log.type;
-      const badgeClass = TYPE_BADGE_CLASS[log.type] ?? "out";
-      const time = new Date(log.created_at).toLocaleString("ja-JP");
-      return `
+  // 日付＋氏名ごとに1行へ集約し、種別ごとの列に時刻を並べる
+  const rows = new Map();
+  for (const log of data) {
+    const created = new Date(log.created_at);
+    const dateLabel = formatDateJP(created);
+    const name = log.employees?.name ?? "不明";
+    const key = `${dateLabel}__${name}`;
+
+    if (!rows.has(key)) {
+      rows.set(key, {
+        dateLabel,
+        sortDate: created,
+        name,
+        clock_in: [],
+        break_start: [],
+        break_end: [],
+        clock_out: [],
+      });
+    }
+    const row = rows.get(key);
+    if (row[log.type]) {
+      row[log.type].push(formatTimeJP(created));
+    }
+  }
+
+  const sortedRows = Array.from(rows.values()).sort((a, b) => {
+    const dateDiff = b.sortDate - a.sortDate;
+    if (dateDiff !== 0) return dateDiff;
+    return a.name.localeCompare(b.name, "ja");
+  });
+
+  logTableBody.innerHTML = sortedRows
+    .map(
+      (row) => `
         <tr>
-          <td>${time}</td>
-          <td>${log.employees?.name ?? "不明"}</td>
-          <td><span class="badge ${badgeClass}">${label}</span></td>
+          <td class="date-cell">${row.dateLabel}</td>
+          <td class="name-cell">${row.name}</td>
+          <td class="time-cell">${row.clock_in.join(", ")}</td>
+          <td class="time-cell">${row.break_start.join(", ")}</td>
+          <td class="time-cell">${row.break_end.join(", ")}</td>
+          <td class="time-cell">${row.clock_out.join(", ")}</td>
         </tr>
-      `;
-    })
+      `
+    )
     .join("");
 }
 

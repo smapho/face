@@ -6,7 +6,7 @@
 <title>出退勤一覧 | 顔認証 出退勤システム</title>
 <link rel="stylesheet" href="css/style.css" />
 <style>
-  .card.wide { max-width: 720px; }
+  .card.wide { max-width: 820px; }
   .filter-row { display: flex; gap: 12px; margin-bottom: 16px; }
   .filter-row input[type="date"] {
     flex: 1;
@@ -17,8 +17,11 @@
     color: #e2e8f0;
   }
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #334155; }
-  th { color: #94a3b8; font-weight: 600; }
+  th, td { text-align: left; padding: 8px 6px; border: 1px solid #334155; }
+  th { color: #94a3b8; font-weight: 600; background: #0f172a; }
+  #logTableBody td.date-cell { color: #94a3b8; white-space: nowrap; }
+  #logTableBody td.name-cell { font-weight: 600; }
+  #logTableBody td.time-cell { text-align: center; white-space: nowrap; }
   .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
   .badge.in { background: #14532d; color: #bbf7d0; }
   .badge.out { background: #334155; color: #cbd5e1; }
@@ -50,10 +53,10 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>日時</th><th>氏名</th><th>種別</th></tr>
+          <tr><th>日付</th><th>氏名</th><th>出社</th><th>中抜</th><th>戻り</th><th>退社</th></tr>
         </thead>
         <tbody id="logTableBody">
-          <tr><td colspan="3">読み込み中...</td></tr>
+          <tr><td colspan="6">読み込み中...</td></tr>
         </tbody>
       </table>
     </div>
