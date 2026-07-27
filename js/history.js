@@ -143,6 +143,15 @@ function formatTimeJP(d) {
   return d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
 }
 
+// 出社は1回目、退社は最後の打刻のみを表示する（中抜け・戻りは全件表示）
+function firstTime(times) {
+  return times[0] ?? "";
+}
+
+function lastTime(times) {
+  return times[times.length - 1] ?? "";
+}
+
 // 日付＋氏名ごとに1行へ集約し、種別ごとの列に時刻を並べる
 function buildPivotRows(data) {
   const rows = new Map();
@@ -212,10 +221,10 @@ async function loadLogTable(dateStr) {
         <tr>
           <td class="date-cell ${row.cellClass}">${row.dateLabel}</td>
           <td class="name-cell">${row.name}</td>
-          <td class="time-cell">${row.clock_in.join(", ")}</td>
+          <td class="time-cell">${firstTime(row.clock_in)}</td>
           <td class="time-cell">${row.break_start.join(", ")}</td>
           <td class="time-cell">${row.break_end.join(", ")}</td>
-          <td class="time-cell">${row.clock_out.join(", ")}</td>
+          <td class="time-cell">${lastTime(row.clock_out)}</td>
         </tr>
       `
     )
@@ -303,10 +312,10 @@ async function loadModalMonth() {
       (row) => `
         <tr>
           <td class="date-cell ${row.cellClass}">${row.dateLabel}</td>
-          <td class="time-cell">${row.clock_in.join(", ")}</td>
+          <td class="time-cell">${firstTime(row.clock_in)}</td>
           <td class="time-cell">${row.break_start.join(", ")}</td>
           <td class="time-cell">${row.break_end.join(", ")}</td>
-          <td class="time-cell">${row.clock_out.join(", ")}</td>
+          <td class="time-cell">${lastTime(row.clock_out)}</td>
         </tr>
       `
     )
