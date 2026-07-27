@@ -4,6 +4,20 @@ const dateFilter = document.getElementById("dateFilter");
 const todayBtn = document.getElementById("todayBtn");
 const allBtn = document.getElementById("allBtn");
 
+const TYPE_LABELS = {
+  clock_in: "出社",
+  clock_out: "退社",
+  break_start: "中抜け",
+  break_end: "戻り",
+};
+
+const TYPE_BADGE_CLASS = {
+  clock_in: "in",
+  clock_out: "out",
+  break_start: "break-start",
+  break_end: "break-end",
+};
+
 function todayDateString() {
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -46,13 +60,13 @@ async function loadCurrentStatus() {
   statusGrid.innerHTML = employees
     .map((emp) => {
       const log = latestByEmployee.get(emp.id);
-      const isIn = log?.type === "clock_in";
-      const label = isIn ? "出勤中" : log ? "退勤済み" : "未出勤";
+      const label = log ? TYPE_LABELS[log.type] ?? log.type : "未出勤";
+      const badgeClass = log ? TYPE_BADGE_CLASS[log.type] ?? "out" : "out";
       const time = log ? new Date(log.created_at).toLocaleString("ja-JP") : "-";
       return `
         <div class="status-card">
           <div class="name">${emp.name}</div>
-          <span class="badge ${isIn ? "in" : "out"}">${label}</span>
+          <span class="badge ${badgeClass}">${label}</span>
           <div class="time">${time}</div>
         </div>
       `;
@@ -89,13 +103,14 @@ async function loadLogTable(dateStr) {
 
   logTableBody.innerHTML = data
     .map((log) => {
-      const isIn = log.type === "clock_in";
+      const label = TYPE_LABELS[log.type] ?? log.type;
+      const badgeClass = TYPE_BADGE_CLASS[log.type] ?? "out";
       const time = new Date(log.created_at).toLocaleString("ja-JP");
       return `
         <tr>
           <td>${time}</td>
           <td>${log.employees?.name ?? "不明"}</td>
-          <td><span class="badge ${isIn ? "in" : "out"}">${isIn ? "出勤" : "退勤"}</span></td>
+          <td><span class="badge ${badgeClass}">${label}</span></td>
         </tr>
       `;
     })

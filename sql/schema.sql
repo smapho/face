@@ -11,7 +11,7 @@ create table if not exists employees (
 create table if not exists attendance_logs (
   id uuid primary key default gen_random_uuid(),
   employee_id uuid not null references employees(id) on delete cascade,
-  type text not null check (type in ('clock_in', 'clock_out')),
+  type text not null check (type in ('clock_in', 'clock_out', 'break_start', 'break_end')),
   created_at timestamptz not null default now()
 );
 

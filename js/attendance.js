@@ -1,10 +1,17 @@
 const video = document.getElementById("video");
 const overlay = document.getElementById("overlay");
-const scanBtn = document.getElementById("scanBtn");
+const actionButtons = document.querySelectorAll(".action-btn");
 const statusEl = document.getElementById("status");
 const logListEl = document.getElementById("logList");
 
 const MATCH_THRESHOLD = window.APP_CONFIG.MATCH_THRESHOLD || 0.55;
+
+const TYPE_LABELS = {
+  clock_in: "出社",
+  clock_out: "退社",
+  break_start: "中抜け",
+  break_end: "戻り",
+};
 
 function setStatus(message, type) {
   statusEl.textContent = message;
@@ -17,8 +24,8 @@ async function init() {
     await startCamera(video);
     overlay.width = video.clientWidth;
     overlay.height = video.clientHeight;
-    setStatus("顔をカメラの中央に映して「スキャン」を押してください", "info");
-    scanBtn.disabled = false;
+    setStatus("顔をカメラの中央に映して、打刻したい種別のボタンを押してください", "info");
+    actionButtons.forEach((btn) => (btn.disabled = false));
     await refreshRecentLogs();
   } catch (err) {
     console.error(err);
@@ -38,17 +45,6 @@ async function fetchEmployeesWithDescriptors() {
   }));
 }
 
-async function getLastLogType(employeeId) {
-  const { data, error } = await supabaseClient
-    .from("attendance_logs")
-    .select("type, created_at")
-    .eq("employee_id", employeeId)
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (error) throw error;
-  return data.length ? data[0].type : null;
-}
-
 async function refreshRecentLogs() {
   const { data, error } = await supabaseClient
     .from("attendance_logs")
@@ -58,15 +54,15 @@ async function refreshRecentLogs() {
   if (error) return;
   logListEl.innerHTML = data
     .map((log) => {
-      const label = log.type === "clock_in" ? "出勤" : "退勤";
+      const label = TYPE_LABELS[log.type] ?? log.type;
       const time = new Date(log.created_at).toLocaleString("ja-JP");
       return `<div>${time} - ${log.employees?.name ?? "不明"} - ${label}</div>`;
     })
     .join("");
 }
 
-scanBtn.addEventListener("click", async () => {
-  scanBtn.disabled = true;
+async function handleAction(type) {
+  actionButtons.forEach((btn) => (btn.disabled = true));
   setStatus("顔を検出中です...", "info");
 
   try {
@@ -88,24 +84,25 @@ scanBtn.addEventListener("click", async () => {
       return;
     }
 
-    const lastType = await getLastLogType(match.employee.id);
-    const nextType = lastType === "clock_in" ? "clock_out" : "clock_in";
-
     const { error: insertError } = await supabaseClient
       .from("attendance_logs")
-      .insert({ employee_id: match.employee.id, type: nextType });
+      .insert({ employee_id: match.employee.id, type });
 
     if (insertError) throw insertError;
 
-    const label = nextType === "clock_in" ? "出勤" : "退勤";
+    const label = TYPE_LABELS[type] ?? type;
     setStatus(`${match.employee.name}さん、${label}を記録しました`, "success");
     await refreshRecentLogs();
   } catch (err) {
     console.error(err);
     setStatus("エラーが発生しました: " + err.message, "error");
   } finally {
-    scanBtn.disabled = false;
+    actionButtons.forEach((btn) => (btn.disabled = false));
   }
+}
+
+actionButtons.forEach((btn) => {
+  btn.addEventListener("click", () => handleAction(btn.dataset.type));
 });
 
 init();

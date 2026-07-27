@@ -5,6 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>出退勤打刻 | 顔認証 出退勤システム</title>
 <link rel="stylesheet" href="css/style.css" />
+<style>
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .action-btn {
+    padding: 16px 8px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+  }
+  .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-in { background: #16a34a; }
+  .btn-out { background: #dc2626; }
+  .btn-break-start { background: #d97706; }
+  .btn-break-end { background: #2563eb; }
+</style>
 </head>
 <body>
   <header>
@@ -17,7 +39,12 @@
       <video id="video" muted playsinline></video>
       <canvas id="overlay"></canvas>
     </div>
-    <button id="scanBtn" class="btn-primary" disabled>顔をスキャンして打刻する</button>
+    <div class="action-grid">
+      <button class="action-btn btn-in" data-type="clock_in" disabled>出社</button>
+      <button class="action-btn btn-out" data-type="clock_out" disabled>退社</button>
+      <button class="action-btn btn-break-start" data-type="break_start" disabled>中抜け</button>
+      <button class="action-btn btn-break-end" data-type="break_end" disabled>戻り</button>
+    </div>
     <div id="status" class="status">モデルを読み込み中です...</div>
     <div id="logList" class="log-list"></div>
   </div>
