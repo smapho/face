@@ -7,8 +7,11 @@ const prevDayBtn = document.getElementById("prevDayBtn");
 const nextDayBtn = document.getElementById("nextDayBtn");
 const bigDateEl = document.getElementById("bigDate");
 const bigWeekdayEl = document.getElementById("bigWeekday");
+const bigHolidayEl = document.getElementById("bigHoliday");
 
 const WEEKDAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
+
+let holidaysData = {};
 
 const TYPE_LABELS = {
   clock_in: "出社",
@@ -38,14 +41,24 @@ function shiftDateString(dateStr, days) {
 }
 
 function updateBigDateDisplay() {
+  bigDateEl.classList.remove("sunday", "saturday", "holiday");
+
   if (!dateFilter.value) {
     bigDateEl.textContent = "全期間";
     bigWeekdayEl.textContent = "";
+    bigHolidayEl.textContent = "";
     return;
   }
   const d = new Date(dateFilter.value + "T00:00:00");
+  const holidayName = getHolidayName(d, holidaysData);
+  const dow = d.getDay();
+
   bigDateEl.textContent = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-  bigWeekdayEl.textContent = `${WEEKDAYS_JP[d.getDay()]}曜日`;
+  bigWeekdayEl.textContent = `${WEEKDAYS_JP[dow]}曜日`;
+  bigHolidayEl.textContent = holidayName || "";
+
+  if (holidayName || dow === 0) bigDateEl.classList.add("sunday");
+  else if (dow === 6) bigDateEl.classList.add("saturday");
 }
 
 async function loadCurrentStatus() {
@@ -99,7 +112,16 @@ async function loadCurrentStatus() {
 }
 
 function formatDateJP(d) {
-  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+  const holidayName = getHolidayName(d, holidaysData);
+  const base = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}(${WEEKDAYS_JP[d.getDay()]})`;
+  return holidayName ? `${base} ${holidayName}` : base;
+}
+
+function dateCellClass(d) {
+  if (getHolidayName(d, holidaysData)) return "holiday";
+  if (d.getDay() === 0) return "sunday";
+  if (d.getDay() === 6) return "saturday";
+  return "";
 }
 
 function formatTimeJP(d) {
@@ -144,6 +166,7 @@ async function loadLogTable(dateStr) {
     if (!rows.has(key)) {
       rows.set(key, {
         dateLabel,
+        cellClass: dateCellClass(created),
         sortDate: created,
         name,
         clock_in: [],
@@ -168,7 +191,7 @@ async function loadLogTable(dateStr) {
     .map(
       (row) => `
         <tr>
-          <td class="date-cell">${row.dateLabel}</td>
+          <td class="date-cell ${row.cellClass}">${row.dateLabel}</td>
           <td class="name-cell">${row.name}</td>
           <td class="time-cell">${row.clock_in.join(", ")}</td>
           <td class="time-cell">${row.break_start.join(", ")}</td>
@@ -213,6 +236,12 @@ nextDayBtn.addEventListener("click", () => {
   loadLogTable(dateFilter.value);
 });
 
+async function init() {
+  holidaysData = await loadJapaneseHolidays();
+  updateBigDateDisplay();
+  loadLogTable(dateFilter.value);
+}
+
 updateBigDateDisplay();
 loadCurrentStatus();
-loadLogTable(dateFilter.value);
+init();

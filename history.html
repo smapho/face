@@ -29,7 +29,12 @@
   .arrow-btn:hover { background: #334155; }
   .date-display { text-align: center; min-width: 220px; }
   .big-date { font-size: 1.9rem; font-weight: 700; color: #f1f5f9; line-height: 1.2; }
+  .big-date.sunday, .big-date.holiday { color: #f87171; }
+  .big-date.saturday { color: #60a5fa; }
   .big-weekday { font-size: 1rem; color: #94a3b8; margin-top: 2px; }
+  .big-holiday { font-size: 0.85rem; color: #f87171; margin-top: 4px; min-height: 1.1em; }
+  #logTableBody td.date-cell.sunday, #logTableBody td.date-cell.holiday { color: #f87171; }
+  #logTableBody td.date-cell.saturday { color: #60a5fa; }
   .date-sub-controls {
     display: flex;
     justify-content: center;
@@ -75,6 +80,7 @@
       <div class="date-display">
         <div id="bigDate" class="big-date">-</div>
         <div id="bigWeekday" class="big-weekday">-</div>
+        <div id="bigHoliday" class="big-holiday"></div>
       </div>
       <button id="nextDayBtn" class="arrow-btn" aria-label="次の日">›</button>
     </div>
@@ -110,6 +116,7 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/api/config.js"></script>
   <script src="js/supabaseClient.js"></script>
+  <script src="js/holidays.js"></script>
   <script src="js/history.js"></script>
 </body>
 </html>
