@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>管理者ログイン | 顔認証 出退勤システム</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>管理者ログイン</h1>
+    <p>出退勤一覧を見るにはパスワードを入力してください</p>
+  </header>
+
+  <div class="card">
+    <input type="password" id="passwordInput" placeholder="パスワード" autocomplete="current-password" />
+    <button id="loginBtn" class="btn-primary">開く</button>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="nav-links">
+    <a href="index.html">← トップに戻る</a>
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+</html>
